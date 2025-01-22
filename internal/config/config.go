@@ -2,64 +2,70 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
+	"path/filepath"
 )
 
 const configFileName = ".gatorconfig.json"
 
 type Config struct {
-	DbUrl           string `json:"db_url"`
+	DBURL           string `json:"db_url"`
 	CurrentUserName string `json:"current_user_name"`
 }
 
-func (cfg *Config) Read() error {
-	configFilePath, err := getConfigFilePath()
-
-	if err != nil {
-		return fmt.Errorf("cannot find home directory : %w", err)
-	}
-
-	fileData, err := os.ReadFile(configFilePath)
-	if err != nil {
-		return fmt.Errorf("cannot read file : %w", err)
-	}
-
-	return json.Unmarshal(fileData, cfg)
+func (cfg *Config) SetUser(userName string) error {
+	cfg.CurrentUserName = userName
+	return write(*cfg)
 }
 
-func (cfg Config) SetUser(current_user_name string) error {
-	cfg.CurrentUserName = current_user_name
-
-	if err := write(cfg); err != nil {
-		return fmt.Errorf("cannot write config : %w", err)
+func ReadConfig() (Config, error) {
+	fullPath, err := getConfigFilePath()
+	if err != nil {
+		return Config{}, err
 	}
-	return nil
+
+	file, err := os.Open(fullPath)
+	if err != nil {
+		return Config{}, err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	cfg := Config{}
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		return Config{}, err
+	}
+
+	return cfg, nil
 }
 
-func getConfigFilePath() (path string, err error) {
-	homeDir, err := os.UserHomeDir()
+func getConfigFilePath() (string, error) {
+	home, err := os.UserHomeDir()
 	if err != nil {
-		return
+		return "", err
 	}
-	path = fmt.Sprintf("%v/%v", homeDir, configFileName)
-	return
+	fullPath := filepath.Join(home, configFileName)
+	return fullPath, nil
 }
 
 func write(cfg Config) error {
-	configFilePath, err := getConfigFilePath()
-
+	fullPath, err := getConfigFilePath()
 	if err != nil {
-		return fmt.Errorf("cannot find home directory : %w", err)
+		return err
 	}
 
-	config, err := json.Marshal(cfg)
+	file, err := os.Create(fullPath)
 	if err != nil {
-		return fmt.Errorf("cannot find home directory : %w", err)
+		return err
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(cfg)
+	if err != nil {
+		return err
 	}
 
-	if err := os.WriteFile(configFilePath, config, 0666); err != nil {
-		return fmt.Errorf("cannot write file : %w", err)
-	}
 	return nil
 }
