@@ -55,17 +55,13 @@ func fetchFeed(ctx context.Context, feedURL string) (rss *RSSFeed, err error) {
 	return
 }
 
-func handleAddFeed(s *state, cmd command) error {
+func handleAddFeed(s *state, cmd command, usr database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("no Argument")
 	}
 
 	ctx := context.Background()
 	defer ctx.Done()
-	usr, err := s.db.GetUser(ctx, s.config.CurrentUserName)
-	if err != nil {
-		return err
-	}
 
 	createFeeds := database.CreateFeedsParams{
 		ID:        uuid.New(),
@@ -127,15 +123,11 @@ func handleFeeds(s *state, cmd command) error {
 	return nil
 }
 
-func handleFollow(s *state, cmd command) error {
+func handleFollow(s *state, cmd command, usr database.User) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
 	url := cmd.Args[0]
-	usr, err := s.db.GetUser(ctx, s.config.CurrentUserName)
-	if err != nil {
-		return err
-	}
 	feed, err := s.db.GetFeeedByUrl(ctx, sql.NullString{String: url, Valid: true})
 	if err != nil {
 		return err
@@ -158,7 +150,7 @@ func handleFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handleFollowing(s *state, cmd command) error {
+func handleFollowing(s *state, cmd command, usr database.User) error {
 	ctx := context.Background()
 	defer ctx.Done()
 
@@ -173,6 +165,33 @@ func handleFollowing(s *state, cmd command) error {
 	}
 
 	fmt.Println(feed_follow)
+	os.Exit(0)
+	return nil
+}
+
+func handleUnfollow(s *state, cmd command, usr database.User) error {
+	if len(cmd.Args) == 0 {
+		return fmt.Errorf("no Argument")
+	}
+	ctx := context.Background()
+	defer ctx.Done()
+
+	url := cmd.Args[0]
+	feed, err := s.db.GetFeeedByUrl(ctx, sql.NullString{Valid: true, String: url})
+	if err != nil {
+		return err
+	}
+
+	deleteFeedFollowsForUserParams := database.DeleteFeedFollowsForUserParams{
+		UserID: usr.ID,
+		FeedID: feed.ID,
+	}
+	err = s.db.DeleteFeedFollowsForUser(ctx, deleteFeedFollowsForUserParams)
+
+	if err != nil {
+		return err
+	}
+
 	os.Exit(0)
 	return nil
 }

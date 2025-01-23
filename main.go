@@ -31,10 +31,11 @@ func main() {
 	list_commands.register("reset", handleReset)
 	list_commands.register("users", handleAllUsers)
 	list_commands.register("agg", handleAggregate)
-	list_commands.register("addfeed", handleAddFeed)
+	list_commands.register("addfeed", middlewareLoggedIn(handleAddFeed))
 	list_commands.register("feeds", handleFeeds)
-	list_commands.register("follow", handleFollow)
-	list_commands.register("following", handleFollowing)
+	list_commands.register("follow", middlewareLoggedIn(handleFollow))
+	list_commands.register("following", middlewareLoggedIn(handleFollowing))
+	list_commands.register("unfollow", middlewareLoggedIn(handleUnfollow))
 
 	args := os.Args
 	if len(args) < 2 {
