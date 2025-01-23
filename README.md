@@ -1,45 +1,57 @@
 # Gator
 
-Gator is a Go-based application designed to simplify and streamline your workflow. 
-
-## Features
-
-- Easy to use
-- High performance
-- Scalable
-- Secure
+A multi-player command line tool for aggregating RSS feeds and viewing the posts.
 
 ## Installation
 
-To install Gator, run the following command:
+Make sure you have the latest [Go toolchain](https://golang.org/dl/) installed as well as a local Postgres database. You can then install `gator` with:
 
-```sh
-go get github.com/yourusername/gator
+```bash
+go install ...
 ```
+
+## Config
+
+Create a `.gatorconfig.json` file in your home directory with the following structure:
+
+```json
+{
+  "db_url": "postgres://username:@localhost:5432/database?sslmode=disable"
+}
+```
+
+Replace the values with your database connection string.
 
 ## Usage
 
-To use Gator, import it into your project:
+Create a new user:
 
-```go
-import "github.com/yourusername/gator"
+```bash
+gator register <name>
 ```
 
-Then, initialize and start using it:
+Add a feed:
 
-```go
-gator := gator.New()
-gator.DoSomething()
+```bash
+gator addfeed <url>
 ```
 
-## Contributing
+Start the aggregator:
 
-We welcome contributions! Please fork the repository and submit a pull request.
+```bash
+gator agg 30s
+```
 
-## License
+View the posts:
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+```bash
+gator browse [limit]
+```
 
-## Contact
+There are a few other commands you'll need as well:
 
-For any questions or feedback, please open an issue or contact us at support@example.com.
+- `gator login <name>` - Log in as a user that already exists
+- `gator users` - List all users
+- `gator feeds` - List all feeds
+- `gator follow <url>` - Follow a feed that already exists in the database
+- `gator unfollow <url>` - Unfollow a feed that already exists in the database
