@@ -239,5 +239,20 @@ func scrapeFeed(db *database.Queries, feed database.Feed) {
 	for _, item := range feedData.Channel.Item {
 		fmt.Printf("Found post: %s\n", item.Title)
 	}
-	log.Printf("Feed %s collected, %v posts found", feed.Name, len(feedData.Channel.Item))
+	for _, rssItem := range feedData.Channel.Item {
+		publishedAt, _ := time.Parse(time.RFC1123, rssItem.PubDate)
+		db.CreatePosts(
+			context.Background(),
+			database.CreatePostsParams{
+				ID:          uuid.New(),
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+				Title:       rssItem.Title,
+				Url:         rssItem.Link,
+				Description: sql.NullString{String: rssItem.Description, Valid: true},
+				PublishedAt: publishedAt,
+				FeedID:      feed.ID,
+			},
+		)
+	}
 }
