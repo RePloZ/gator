@@ -104,7 +104,16 @@ func handleAggregate(s *state, cmd command) error {
 		(&item).Title = html.EscapeString(item.Title)
 		(&item).Description = html.EscapeString(item.Description)
 	}
-	fmt.Println(rss)
+
+	duration, err := time.ParseDuration("1m")
+	if err != nil {
+		return err
+	}
+	ticker := time.NewTicker(duration)
+	for ; ; <-ticker.C {
+		scrapeFeeds(s)
+	}
+
 	os.Exit(0)
 	return nil
 }
@@ -193,5 +202,34 @@ func handleUnfollow(s *state, cmd command, usr database.User) error {
 	}
 
 	os.Exit(0)
+	return nil
+}
+
+func scrapeFeeds(s *state) error {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	feed, err := s.db.GetNextFeedToFetch(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = s.db.MarkFeedFetched(
+		ctx,
+		database.MarkFeedFetchedParams{
+			ID:        feed.ID,
+			UpdatedAt: time.Now(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	currentFeed, err := s.db.GetFeeedByUrl(ctx, feed.Url)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(currentFeed.Name)
 	return nil
 }
