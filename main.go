@@ -23,19 +23,20 @@ func main() {
 	defer db.Close()
 	dbQueries := database.New(db)
 
-	app := state{config: cfg, db: dbQueries}
+	app := cli.state{config: cfg, db: dbQueries}
 
 	list_commands := commands{}
-	list_commands.register("login", handlerLogin)
-	list_commands.register("register", handleRegister)
-	list_commands.register("reset", handleReset)
-	list_commands.register("users", handleAllUsers)
-	list_commands.register("agg", handleAggregate)
-	list_commands.register("addfeed", middlewareLoggedIn(handleAddFeed))
-	list_commands.register("feeds", handleFeeds)
-	list_commands.register("follow", middlewareLoggedIn(handleFollow))
-	list_commands.register("following", middlewareLoggedIn(handleFollowing))
-	list_commands.register("unfollow", middlewareLoggedIn(handleUnfollow))
+	list_commands.register("login", handlers.handlerLogin)
+	list_commands.register("register", handlers.handleRegister)
+	list_commands.register("reset", handlers.handleReset)
+	list_commands.register("users", handlers.handleAllUsers)
+	list_commands.register("agg", handlers.handleAggregate)
+	list_commands.register("addfeed", middleware.middlewareLoggedIn(handlers.handleAddFeed))
+	list_commands.register("feeds", handlers.handleFeeds)
+	list_commands.register("follow", middleware.middlewareLoggedIn(handlers.handleFollow))
+	list_commands.register("following", middleware.middlewareLoggedIn(handlers.handleFollowing))
+	list_commands.register("unfollow", middleware.middlewareLoggedIn(handlers.handleUnfollow))
+	list_commands.register("browse", handlers.handleBrowse)
 
 	args := os.Args
 	if len(args) < 2 {
@@ -46,4 +47,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	os.Exit(0)
 }

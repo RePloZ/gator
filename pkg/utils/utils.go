@@ -1,20 +1,19 @@
-package main
+package utils
 
 import (
 	"fmt"
 
-	"github.com/RePloZ/gator/internal/config"
 	"github.com/RePloZ/gator/internal/database"
 )
-
-type state struct {
-	db     *database.Queries
-	config config.Config
-}
 
 type command struct {
 	Name string
 	Args []string
+}
+
+type state struct {
+	db     *database.Queries
+	config utils.Config
 }
 
 type commands struct {

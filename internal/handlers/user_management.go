@@ -1,9 +1,8 @@
-package main
+package handlers
 
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/RePloZ/gator/internal/database"
@@ -24,7 +23,6 @@ func handlerLogin(s *state, cmd command) error {
 		return err
 	}
 	fmt.Printf("User has been set !")
-	os.Exit(0)
 	return nil
 }
 
@@ -47,7 +45,6 @@ func handleRegister(s *state, cmd command) error {
 	}
 	fmt.Printf("User has been created !")
 	s.config.SetUser(user.Name)
-	os.Exit(0)
 	return nil
 }
 
@@ -59,7 +56,6 @@ func handleReset(s *state, _ command) error {
 		return err
 	}
 	fmt.Printf("All users was deleted !")
-	os.Exit(0)
 	return nil
 }
 
@@ -78,6 +74,5 @@ func handleAllUsers(s *state, _ command) error {
 		}
 		fmt.Print("\n")
 	}
-	os.Exit(0)
 	return nil
 }

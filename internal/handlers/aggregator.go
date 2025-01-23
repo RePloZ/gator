@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -9,30 +9,15 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
+	"strconv"
 	"time"
 
 	"github.com/RePloZ/gator/internal/database"
+	"github.com/RePloZ/gator/pkg/models"
 	"github.com/google/uuid"
 )
 
-type RSSFeed struct {
-	Channel struct {
-		Title       string    `xml:"title"`
-		Link        string    `xml:"link"`
-		Description string    `xml:"description"`
-		Item        []RSSItem `xml:"item"`
-	} `xml:"channel"`
-}
-
-type RSSItem struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	Description string `xml:"description"`
-	PubDate     string `xml:"pubDate"`
-}
-
-func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
+func fetchFeed(ctx context.Context, feedURL string) (*models.RSSFeed, error) {
 	httpClient := http.Client{
 		Timeout: 10 * time.Second,
 	}
@@ -53,7 +38,7 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 		return nil, err
 	}
 
-	var rssFeed RSSFeed
+	var rssFeed models.RSSFeed
 	err = xml.Unmarshal(dat, &rssFeed)
 	if err != nil {
 		return nil, err
@@ -70,7 +55,7 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	return &rssFeed, nil
 }
 
-func handleAddFeed(s *state, cmd command, usr database.User) error {
+func handleAddFeed(s *models.state, cmd models.command, usr database.User) error {
 	if len(cmd.Args) != 2 {
 		return fmt.Errorf("no Argument")
 	}
@@ -104,7 +89,6 @@ func handleAddFeed(s *state, cmd command, usr database.User) error {
 	}
 
 	fmt.Println(feed)
-	os.Exit(0)
 	return nil
 }
 
@@ -164,7 +148,6 @@ func handleFollow(s *state, cmd command, usr database.User) error {
 	}
 
 	fmt.Println(feed_follow)
-	os.Exit(0)
 	return nil
 }
 
@@ -183,7 +166,6 @@ func handleFollowing(s *state, cmd command, usr database.User) error {
 	}
 
 	fmt.Println(feed_follow)
-	os.Exit(0)
 	return nil
 }
 
@@ -210,7 +192,29 @@ func handleUnfollow(s *state, cmd command, usr database.User) error {
 		return err
 	}
 
-	os.Exit(0)
+	return nil
+}
+
+func handleBrowse(s *state, cmd command) error {
+	log.Println(len(cmd.Args))
+	if len(cmd.Args) > 2 {
+		return fmt.Errorf("Too much arguments")
+	}
+
+	limit, err := strconv.ParseInt(cmd.Args[0], 10, 64)
+	if err != nil {
+		limit = 2
+	}
+
+	posts, err := s.db.GetPosts(context.Background(), int32(limit))
+	if err != nil {
+		return err
+	}
+
+	for _, post := range posts {
+		log.Println(post)
+	}
+
 	return nil
 }
 
