@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/RePloZ/gator/internal/database"
+	"github.com/RePloZ/gator/pkg/utils"
 	"github.com/google/uuid"
 )
 
-func handlerLogin(s *state, cmd command) error {
+func HandlerLogin(s *utils.State, cmd utils.Command) error {
 	if len(cmd.Args) == 0 {
 		return fmt.Errorf("no Argument")
 	}
@@ -18,7 +19,7 @@ func handlerLogin(s *state, cmd command) error {
 		return fmt.Errorf("user not found")
 	}
 
-	err := s.config.SetUser(cmd.Args[0])
+	err := s.Config.SetUser(cmd.Args[0])
 	if err != nil {
 		return err
 	}
@@ -26,7 +27,7 @@ func handlerLogin(s *state, cmd command) error {
 	return nil
 }
 
-func handleRegister(s *state, cmd command) error {
+func HandleRegister(s *utils.State, cmd utils.Command) error {
 	if len(cmd.Args) == 0 {
 		return fmt.Errorf("no Argument")
 	}
@@ -39,19 +40,19 @@ func handleRegister(s *state, cmd command) error {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	_, err := s.db.CreateUser(ctx, user)
+	_, err := s.DB.CreateUser(ctx, user)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("User has been created !")
-	s.config.SetUser(user.Name)
+	s.Config.SetUser(user.Name)
 	return nil
 }
 
-func handleReset(s *state, _ command) error {
+func HandleReset(s *utils.State, _ utils.Command) error {
 	ctx := context.Background()
 	defer ctx.Done()
-	err := s.db.DeleteAllUsers(ctx)
+	err := s.DB.DeleteAllUsers(ctx)
 	if err != nil {
 		return err
 	}
@@ -59,17 +60,17 @@ func handleReset(s *state, _ command) error {
 	return nil
 }
 
-func handleAllUsers(s *state, _ command) error {
+func HandleAllUsers(s *utils.State, _ utils.Command) error {
 	ctx := context.Background()
 	defer ctx.Done()
-	allUsers, err := s.db.GetUsers(ctx)
+	allUsers, err := s.DB.GetUsers(ctx)
 	if err != nil {
 		return err
 	}
 	fmt.Printf("Get all users !\n")
 	for _, user := range allUsers {
 		fmt.Printf("* %s", user.Name)
-		if user.Name == s.config.CurrentUserName {
+		if user.Name == s.Config.CurrentUserName {
 			fmt.Printf(" (current)")
 		}
 		fmt.Print("\n")
