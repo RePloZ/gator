@@ -99,3 +99,17 @@ func handleAggregate(s *state, cmd command) error {
 	os.Exit(0)
 	return nil
 }
+
+func handleFeeds(s *state, cmd command) error {
+	ctx := context.Background()
+	defer ctx.Done()
+	feeds, err := s.db.GetFeedsInformation(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, feed := range feeds {
+		fmt.Println(feed)
+	}
+	return nil
+}
