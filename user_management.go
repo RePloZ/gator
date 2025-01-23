@@ -81,3 +81,8 @@ func handleAllUsers(s *state, _ command) error {
 	os.Exit(0)
 	return nil
 }
+
+func handleUuid(s *state, _ command) error {
+	fmt.Println(uuid.New())
+	return nil
+}

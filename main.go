@@ -33,6 +33,9 @@ func main() {
 	list_commands.register("agg", handleAggregate)
 	list_commands.register("addfeed", handleAddFeed)
 	list_commands.register("feeds", handleFeeds)
+	list_commands.register("follow", handleFollow)
+	list_commands.register("following", handleFollowing)
+	list_commands.register("uuid", handleUuid)
 
 	args := os.Args
 	if len(args) < 2 {

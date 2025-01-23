@@ -62,7 +62,7 @@ func handleAddFeed(s *state, cmd command) error {
 
 	ctx := context.Background()
 	defer ctx.Done()
-	user, err := s.db.GetUser(ctx, s.config.CurrentUserName)
+	usr, err := s.db.GetUser(ctx, s.config.CurrentUserName)
 	if err != nil {
 		return err
 	}
@@ -73,12 +73,25 @@ func handleAddFeed(s *state, cmd command) error {
 		Url:       sql.NullString{String: cmd.Args[1], Valid: true},
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		UserID:    user.ID,
+		UserID:    usr.ID,
 	}
 	feed, err := s.db.CreateFeeds(ctx, createFeeds)
 	if err != nil {
 		return err
 	}
+
+	createFeedFollow := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    usr.ID,
+		FeedID:    feed.ID,
+	}
+	_, err = s.db.CreateFeedFollow(ctx, createFeedFollow)
+	if err != nil {
+		return fmt.Errorf("cannot create feed follow : %w", err)
+	}
+
 	fmt.Println(feed)
 	os.Exit(0)
 	return nil
@@ -111,5 +124,55 @@ func handleFeeds(s *state, cmd command) error {
 	for _, feed := range feeds {
 		fmt.Println(feed)
 	}
+	return nil
+}
+
+func handleFollow(s *state, cmd command) error {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	url := cmd.Args[0]
+	usr, err := s.db.GetUser(ctx, s.config.CurrentUserName)
+	if err != nil {
+		return err
+	}
+	feed, err := s.db.GetFeeedByUrl(ctx, sql.NullString{String: url, Valid: true})
+	if err != nil {
+		return err
+	}
+
+	createFeedFollow := database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    usr.ID,
+		FeedID:    feed.ID,
+	}
+	feed_follow, err := s.db.CreateFeedFollow(ctx, createFeedFollow)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(feed_follow)
+	os.Exit(0)
+	return nil
+}
+
+func handleFollowing(s *state, cmd command) error {
+	ctx := context.Background()
+	defer ctx.Done()
+
+	usr, err := s.db.GetUser(ctx, s.config.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	feed_follow, err := s.db.GetFeedFollowsForUser(ctx, usr.ID)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(feed_follow)
+	os.Exit(0)
 	return nil
 }
