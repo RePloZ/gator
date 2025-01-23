@@ -2,12 +2,17 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/RePloZ/gator/internal/database"
+	"github.com/google/uuid"
 )
 
 type RSSFeed struct {
@@ -48,6 +53,35 @@ func fetchFeed(ctx context.Context, feedURL string) (rss *RSSFeed, err error) {
 	}
 
 	return
+}
+
+func handleAddFeed(s *state, cmd command) error {
+	if len(cmd.Args) != 2 {
+		return fmt.Errorf("no Argument")
+	}
+
+	ctx := context.Background()
+	defer ctx.Done()
+	user, err := s.db.GetUser(ctx, s.config.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	createFeeds := database.CreateFeedsParams{
+		ID:        uuid.New(),
+		Name:      sql.NullString{String: cmd.Args[0], Valid: true},
+		Url:       sql.NullString{String: cmd.Args[1], Valid: true},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    user.ID,
+	}
+	feed, err := s.db.CreateFeeds(ctx, createFeeds)
+	if err != nil {
+		return err
+	}
+	fmt.Println(feed)
+	os.Exit(0)
+	return nil
 }
 
 func handleAggregate(s *state, cmd command) error {

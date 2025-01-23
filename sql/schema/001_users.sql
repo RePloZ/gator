@@ -1,5 +1,5 @@
 -- +goose Up
-CREATE TABLE "users"
+CREATE TABLE users
 (
     "id" UUID PRIMARY KEY,
     "created_at" TIMESTAMP WITH TIME ZONE NOT NULL,
